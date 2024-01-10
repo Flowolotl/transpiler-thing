@@ -7,6 +7,8 @@ def isskippable(string):
 
 def shift(chars: list):
     char = chars.pop(0)
+    if not isskippable(char):
+        most_recent = char
     return char
 
 
@@ -67,20 +69,22 @@ records = {
 
 
 def tokenize(content: str) -> list:
+
     tokens = []
     chars = [char for char in content]
     while len(chars) > 0:
-        if chars[0] == "+" or chars[0] == "-" or chars[0] == "*" or chars[0] == "/":
+        if chars[0] == "+" or chars[0] == "-" or chars[0] == "*" or chars[0] == "/": # Op
             tokens.append(token(shift(chars), token_type.OPERATION))
-        elif chars[0] == "\"":
+        elif chars[0] == "\"": # start of string
             string = ""
             shift(chars)
             while len(chars) > 0:
-                if chars[0] != "\"":
+                if chars[0] != "\"": # not end of string
                     string+=shift(chars)
                 else:
                     shift(chars)
                     break
+            # insert check for missing end quote
             tokens.append(token(string, token_type.STRING))
         elif chars[0] == "(":
             code = None
@@ -115,11 +119,13 @@ def tokenize(content: str) -> list:
                 elif isskippable(chars[0]):
                     shift(chars)
                 else:
-                    print(f"unknown: {chars[0]}")
+                    tokens.append(token(shift(chars), token_type.UIMPL))
+            if len(chars) > 0:
+                if chars[0] == ")":
                     shift(chars)
-            if chars[0] == ")":
-                shift(chars)
-                tokens.append(token(java_function(target, code), token_type.JAVA_FUNCTION))
+                    tokens.append(token(java_function(target, code), token_type.JAVA_FUNCTION))
+                else:
+                    tokens.append(token(None, token_type.EOF))
             else:
                 tokens.append(token(None, token_type.EOF))
             pass
@@ -135,7 +141,6 @@ def tokenize(content: str) -> list:
                 while len(chars) > 0 and chars[0].isalpha():
                     ident+=shift(chars)
                 
-                # reserved = records[ident];
                 reserved = records.get(ident)
                 if reserved == None:
                     tokens.append(token(ident, token_type.IDENTIFIER))
