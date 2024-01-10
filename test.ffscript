@@ -1,0 +1,1 @@
+item "example_item" (onUse - {System.out.println("Hello World");})
