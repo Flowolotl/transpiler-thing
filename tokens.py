@@ -69,7 +69,6 @@ records = {
 
 
 def tokenize(content: str) -> list:
-
     tokens = []
     chars = [char for char in content]
     while len(chars) > 0:
